@@ -1,6 +1,6 @@
 // panda.config.mjs
 import { defineConfig } from "@pandacss/dev";
-import { lightTheme, darkTheme } from "./styled-system/tokens/colors";
+import { lightTheme, darkTheme } from "./src/theme/colors.js";
 
 export default defineConfig({
   // Whether to use css reset
