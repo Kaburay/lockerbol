@@ -12,8 +12,8 @@ import Home from "../pages/public/Home";
 import ComoFunciona from "../pages/public/ComoFunciona";
 import Ubicaciones from "../pages/public/Ubicaciones";
 import Soporte from "../pages/public/Soporte";
-import AcercaDe from "../pages/public/Acercade";
-import TerminosDeUso from "../pages/public/TerminosdeUso";
+import AcercaDe from "../pages/public/AcercaDe";
+import TerminosDeUso from "../pages/public/TerminosDeUso";
 import PoliticaDePrivacidad from "../pages/public/PoliticaDePrivacidad";
 
 import Login from "../pages/public/auth/Login";
