@@ -1,14 +1,31 @@
-// src/layouts/PublicLayout.jsx
+// src/layouts/PrivateLayout.jsx
 import { Outlet } from "react-router-dom";
-import Navbar from "../components/layout/Navbar";
-import Footer from "../components/layout/Footer";
+import { styled } from "../../styled-system/jsx";
+import AppSidebar from "../components/layout/AppSidebar";
 
-export default function PublicLayout() {
+const Layout = styled("div", {
+  base: {
+    display: "flex",
+    height: "100vh",    
+    bg: "background",
+    overflow: "hidden", 
+  },
+});
+
+const Content = styled("main", {
+  base: {
+    flex: 1,
+    overflowY: "auto",  
+  },
+});
+
+export default function PrivateLayout() {
   return (
-    <>
-      <Navbar />
-      <Outlet />
-      <Footer />
-    </>
+    <Layout>
+      <AppSidebar />
+      <Content>
+        <Outlet />
+      </Content>
+    </Layout>
   );
 }

@@ -1,14 +1,13 @@
-import { Outlet } from "react-router-dom";
+// src/guards/SoftAuthGuard.jsx
+import { Outlet, Navigate } from "react-router-dom";
 import useAuth from "../auth/auth.store";
-import LoginModal from "../components/auth/LoginModal";
 
 export default function SoftAuthGuard() {
-  const { user, showLoginPrompt } = useAuth();
+  const user = useAuth((state) => state.user);
 
   return (
     <>
-      <Outlet />
-      {!user && showLoginPrompt && <LoginModal />}
+      {user ? <Navigate to="/dashboard" replace /> : <Outlet />}
     </>
   );
 }

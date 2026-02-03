@@ -22,6 +22,8 @@ import Register from "../pages/public/auth/Register";
 import Perfil from "../pages/private/profile/Perfil";
 
 import Dashboard from "../pages/private/Dashboard";
+import SelectLocker from "../pages/private/Deposit/SelectLocker";
+import History from "../pages/private/History/History";
 import NotFound from "../pages/NotFound";
 
 export default function AppRoutes() {
@@ -53,6 +55,8 @@ export default function AppRoutes() {
       <Route element={<HardAuthGuard />}>
       <Route element={<PrivateLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/depositar" element={<SelectLocker />} />
+        <Route path="/historial" element={<History />} />
         <Route path="/perfil" element={<Perfil />} />
 
       </Route>

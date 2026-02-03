@@ -6,7 +6,7 @@ export default function Dashboard() {
   const { user } = useAuth();
 
   return (
-    <Container>
+    
       <Content>
 
         <Header>
@@ -69,30 +69,21 @@ export default function Dashboard() {
         </Section>
 
       </Content>
-    </Container>
+    
   );
 }
 
 /* ================== STYLES ================== */
 
-const Container = styled("section", {
-  base: {
-    minH: "100vh",
-    bg: "background",
-    display: "flex",
-    justifyContent: "center",
-  },
-});
 
 const Content = styled("div", {
   base: {
-    w: "100%",
-    maxW: "1100px",
+    py: "2rem",
     px: "1.5rem",
-    py: "4rem",
     display: "flex",
     flexDirection: "column",
     gap: "2.5rem",
+    overflowY: "auto", 
   },
 });
 

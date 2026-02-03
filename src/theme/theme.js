@@ -2,6 +2,7 @@
 
 const THEME_KEY = "lockerbol-theme";
 
+
 export function initTheme() {
   const savedTheme = localStorage.getItem(THEME_KEY);
 
