@@ -24,6 +24,8 @@ import Perfil from "../pages/private/profile/Perfil";
 import Dashboard from "../pages/private/Dashboard";
 import SelectLocker from "../pages/private/Deposit/SelectLocker";
 import History from "../pages/private/History/History";
+import SelectCompartimento from "../pages/private/Deposit/SelectCompartimento";
+import DepositDetails from "../pages/private/Deposit/DepositDetails";
 import NotFound from "../pages/NotFound";
 
 export default function AppRoutes() {
@@ -58,6 +60,11 @@ export default function AppRoutes() {
         <Route path="/depositar" element={<SelectLocker />} />
         <Route path="/historial" element={<History />} />
         <Route path="/perfil" element={<Perfil />} />
+
+
+        <Route path="/depositar/compartimento" element={<SelectCompartimento />} />
+        <Route path="/depositar/detalles" element={<DepositDetails/>} />
+
 
       </Route>
       </Route>
