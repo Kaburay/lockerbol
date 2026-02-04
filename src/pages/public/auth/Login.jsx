@@ -1,16 +1,17 @@
 // src/pages/public/auth/Login.jsx
 import { styled } from "../../../../styled-system/jsx";
-import { Link } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { auth, googleProvider } from "../../../firebase";
-
 import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 
 import {
   getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
   doc,
   getDoc
 } from "firebase/firestore";
@@ -27,26 +28,52 @@ export default function Login() {
   const navigate = useNavigate();
   const db = getFirestore();
 
-  // 👉 verifica si existe perfil en Firestore
+  // 👉 verifica si existe perfil en Firestore (por uid)
   const checkProfile = async (uid) => {
     const snap = await getDoc(doc(db, "usuarios", uid));
     return snap.exists();
   };
 
+  // 👉 verifica si existe el email en la colección usuarios
+  const checkEmailInFirestore = async (emailToCheck) => {
+    const usersRef = collection(db, "usuarios");
+    const q = query(usersRef, where("correo", "==", emailToCheck));
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty; // true si existe al menos 1
+  };
+
   const handleContinue = async () => {
     if (loading) return;
 
+    const trimmedEmail = email.trim().toLowerCase();
+
     // STEP EMAIL
     if (step === "email") {
-      const trimmedEmail = email.trim().toLowerCase();
-
       if (!trimmedEmail || !trimmedEmail.includes("@")) {
         alert("Correo inválido");
         return;
       }
 
-      setEmail(trimmedEmail);
-      setStep("password");
+      try {
+        setLoading(true);
+
+        const existsInFirestore = await checkEmailInFirestore(trimmedEmail);
+
+        if (existsInFirestore) {
+          // ✅ email registrado en nuestra colección → paso a password
+          setStep("password");
+        } else {
+          // 🚀 no registrado → enviar a registro
+          navigate("/registro", { state: { email: trimmedEmail } });
+        }
+
+      } catch (error) {
+        console.error(error);
+        alert("Error al verificar el correo");
+      } finally {
+        setLoading(false);
+      }
+
       return;
     }
 
@@ -60,22 +87,22 @@ export default function Login() {
       try {
         setLoading(true);
 
-        const cred = await signInWithEmailAndPassword(auth, email, password);
+        const cred = await signInWithEmailAndPassword(auth, trimmedEmail, password);
         const uid = cred.user.uid;
 
         const hasProfile = await checkProfile(uid);
 
         if (!hasProfile) {
-          navigate("/registro", { state: { email } });
+          navigate("/registro", { state: { email: trimmedEmail } });
         } else {
           navigate("/dashboard", { replace: true });
         }
 
       } catch (error) {
-        if (error.code === "auth/user-not-found") {
-          navigate("/registro", { state: { email } });
-        } else if (error.code === "auth/wrong-password") {
+        if (error.code === "auth/wrong-password") {
           alert("Contraseña incorrecta");
+        } else if (error.code === "auth/user-not-found") {
+          navigate("/registro", { state: { email: trimmedEmail } });
         } else {
           console.error(error);
           alert("Error al iniciar sesión");
