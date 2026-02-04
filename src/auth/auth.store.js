@@ -5,58 +5,60 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 const useAuth = create((set) => ({
-  user: null,
+  user: null,          // usuario FINAL con perfil
+  firebaseUser: null,  // usuario auth puro
   loading: true,
 
   logout: async () => {
     await signOut(auth);
-    set({ user: null });
+    set({ user: null, firebaseUser: null });
   },
 }));
 
-// 🔥 Escucha global de Firebase Auth
+// 🔥 Listener global (UNA sola vez en toda la app)
 onAuthStateChanged(auth, async (firebaseUser) => {
+  // 🔄 Reset base
   if (!firebaseUser) {
-    useAuth.setState({ user: null, loading: false });
+    useAuth.setState({
+      firebaseUser: null,
+      user: null,
+      loading: false,
+    });
     return;
   }
+
+  // Auth existe
+  useAuth.setState({
+    firebaseUser,
+    loading: true,
+  });
 
   try {
     const ref = doc(db, "usuarios", firebaseUser.uid);
     const snap = await getDoc(ref);
 
-    // Si existe el documento, usamos los datos
-    if (snap.exists()) {
-      const data = snap.data();
+    if (!snap.exists()) {
+      // ⚠️ Auth OK pero perfil NO creado
       useAuth.setState({
-        user: {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          username: data.nombre_completo || "Usuario",
-          ...data,
-        },
+        user: null,
         loading: false,
       });
-    } else {
-      // Documento no existe todavía → fallback defensivo
-      // Esto pasa justo después de un registro con Google
-      useAuth.setState({
-        user: {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          username: "Usuario",
-        },
-        loading: false,
-      });
+      return;
     }
-  } catch (error) {
-    console.error("Error cargando usuario:", error);
+
+    // ✅ Perfil completo
     useAuth.setState({
       user: {
         uid: firebaseUser.uid,
         email: firebaseUser.email,
-        username: "Usuario",
+        ...snap.data(),
       },
+      loading: false,
+    });
+  } catch (err) {
+    console.error("Auth load error:", err);
+    useAuth.setState({
+      user: null,
       loading: false,
     });
   }

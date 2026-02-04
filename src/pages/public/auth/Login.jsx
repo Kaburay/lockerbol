@@ -68,7 +68,7 @@ export default function Login() {
         if (!hasProfile) {
           navigate("/registro", { state: { email } });
         } else {
-          navigate("/");
+          navigate("/dashboard", { replace: true });
         }
 
       } catch (error) {
@@ -99,7 +99,7 @@ export default function Login() {
       if (!hasProfile) {
         navigate("/registro", { state: { email: userEmail } });
       } else {
-        navigate("/");
+        navigate("/dashboard", { replace: true });
       }
 
     } catch (error) {

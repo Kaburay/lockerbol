@@ -2,16 +2,11 @@
 import { styled } from "../../../../styled-system/jsx";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import useAuth from "../../../auth/auth.store";
 
 import { auth } from "../../../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 
 import logo from "../../../assets/logo_lock.svg";
 
@@ -19,6 +14,7 @@ export default function Register() {
   const location = useLocation();
   const navigate = useNavigate();
   const db = getFirestore();
+  
 
   const email = location.state?.email || "";
 
@@ -29,48 +25,59 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-const handleRegister = async () => {
-  if (loading) return;
+  const handleRegister = async () => {
+    if (loading) return;
 
-  if (!username || !nombre || !telefono || !fechaNacimiento || !password) {
-    alert("Completa todos los campos");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    let user = auth.currentUser;
-
-    // 👉 Si NO existe sesión (registro normal)
-    if (!user) {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      user = cred.user;
+    if (!username || !nombre || !telefono || !fechaNacimiento || !password) {
+      alert("Completa todos los campos");
+      return;
     }
 
-    const uid = user.uid;
+    try {
+      setLoading(true);
 
-    // 👉 Crear documento Firestore SIEMPRE
-    await setDoc(doc(db, "usuarios", uid), {
-      correo: email.toLowerCase(),
-      username,
-      nombre_completo: nombre,
-      telefono,
-      tipo_usuario: "usuario",
-      fecha_nacimiento: fechaNacimiento,
-      fecha_creacion: serverTimestamp(),
-      version_perfil: 1,
-    });
+      let currentUser = auth.currentUser;
 
-    navigate("/");
-  } catch (error) {
-    console.error(error.code, error.message);
-    alert(error.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      // 👉 Si no hay sesión, crear usuario
+      if (!currentUser) {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        currentUser = cred.user;
+      }
 
+      const uid = currentUser.uid;
+
+      // 👉 Crear documento Firestore
+      await setDoc(doc(db, "usuarios", uid), {
+        correo: email.toLowerCase(),
+        username,
+        nombre_completo: nombre,
+        telefono,
+        tipo_usuario: "usuario",
+        fecha_nacimiento: fechaNacimiento,
+        fecha_creacion: serverTimestamp(),
+        version_perfil: 1,
+      });
+
+      // 🔥 Forzar actualización inmediata del store
+      const snap = await getDoc(doc(db, "usuarios", uid));
+      if (snap.exists()) {
+        useAuth.setState({
+          user: { uid, email: currentUser.email, ...snap.data() },
+          firebaseUser: currentUser,
+          loading: false,
+        });
+
+        // 👉 Navegar al dashboard
+        navigate("/dashboard", { replace: true });
+      }
+
+    } catch (error) {
+      console.error(error.code, error.message);
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Container>
@@ -89,7 +96,7 @@ const handleRegister = async () => {
         <Form>
           <Field>
             <label>Correo</label>
-            <input type="email" value={email}/>
+            <input type="email" value={email} readOnly />
           </Field>
 
           <Field>
@@ -109,20 +116,12 @@ const handleRegister = async () => {
 
           <Field>
             <label>Fecha de nacimiento</label>
-            <input
-              type="date"
-              value={fechaNacimiento}
-              onChange={(e) => setFechaNacimiento(e.target.value)}
-            />
+            <input type="date" value={fechaNacimiento} onChange={(e) => setFechaNacimiento(e.target.value)} />
           </Field>
 
           <Field>
             <label>Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </Field>
 
           <PrimaryButton onClick={handleRegister} disabled={loading}>
@@ -138,6 +137,7 @@ const handleRegister = async () => {
     </Container>
   );
 }
+
 
 /* ================= STYLES (copiados del login) ================= */
 
